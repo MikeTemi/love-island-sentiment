@@ -237,6 +237,27 @@ def create_visualizations(df, individual_sentiment, couple_sentiment):
     
     plt.show()
 
+def detailed_couple_analysis(couple_sentiment, df):
+    """Dive deeper into why certain couples scored high"""
+    print("\n=== DETAILED COUPLE ANALYSIS ===")
+    
+    for couple, data in couple_sentiment.items():
+        print(f"\n{couple}:")
+        print(f"  Total mentions: {data['mentions']}")
+        print(f"  Average sentiment: {data['avg_sentiment']:.3f}")
+        print(f"  Weighted sentiment: {data['weighted_sentiment']:.3f}")
+        print(f"  Positive posts: {data['positive_posts']} ({data['positivity_ratio']:.1%})")
+        print(f"  Negative posts: {data['negative_posts']}")
+        
+        # Show some example posts about this couple
+        couple_posts = df[df['mentioned_couples'].str.contains(couple, na=False)]
+        if len(couple_posts) > 0:
+            print(f"  Sample recent posts:")
+            recent_posts = couple_posts.nlargest(2, 'score')[['content', 'vader_compound', 'score']]
+            for _, post in recent_posts.iterrows():
+                content_preview = post['content'][:100] + "..." if len(post['content']) > 100 else post['content']
+                print(f"    - \"{content_preview}\" (sentiment: {post['vader_compound']:.2f}, score: {post['score']})")
+
 def main():
     """Main analysis function"""
     # Load the sentiment data
@@ -252,6 +273,9 @@ def main():
 
     # Predict the winner based on sentiment analysis
     predicted_winner = predict_winner(individual_sentiment, couple_sentiment)
+
+    # Detailed analysis of couples
+    detailed_couple_analysis(couple_sentiment, df)
 
     # Create visualizations
     create_visualizations(df, individual_sentiment, couple_sentiment)
